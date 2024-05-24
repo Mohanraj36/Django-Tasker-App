@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+<title>Tasker | Home</title>
+{% endblock %}
+{% block content %}
+
+<head>
+    <style>
+        body {
+            background: var(--bs-light-bg-subtle);
+        }
+
+        .img-container {
+            filter: drop-shadow(0px 4px 9px #000000)
+        }
+
+        .img-clip {
+            clip-path: polygon(50% 0%, 83% 12%, 100% 43%, 94% 78%, 68% 100%, 32% 100%, 6% 78%, 0% 43%, 17% 12%);
+
+        }
+    </style>
+</head>
+
+<body>
+    <div class="fixed-top ">
+        {% include 'messages.html' %}
+    </div>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'index' %}" style="font-family: 'Amatic SC', cursive;">Django
+                Tasker</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Welcome, {{ user.username }}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'register' %}">Register</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container pt-0">
+        <div class="row mb-0">
+            <div class="col-md-6 mt-5 mb-0">
+                <div class="container mt-5">
+                    <div class="col-lg-10">
+                        <h1 class="mb-4 fs-1 font-weight-bold">Django Tasker</h1>
+                        <p>"Teamwork makes the dream work." - John C. Maxwell</p>
+                        <p class="lead">A simple task management system built with Django</p>
+                        <blockquote class="blockquote">
+                            <i class="fs-1 text-primary" style="filter: drop-shadow(0px 4px 9px #84c1f0)"><span
+                                    class="mb-0"><i class="fa-solid fa-quote-left"></i>Streamline your
+                                    workflow, elevate your success.</span><i class="fa-solid fa-quote-right"></i></i>
+                        </blockquote>
+                        <p class="lead">Visualize progress and manage <span class="text-success"> <strong>Task's &amp; Ticket's</strong> </span> effortlessly with Django Tasker
+                            interactive charts and intuitive tracking features.</p>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-start mb-3">
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}" class="px-5">
+                            <h5 class="text-primary"><i class="fa fa-hashtag me-2"></i>Go To Console</h5>
+                        </a>
+                        {% else %}
+                        <a href="{% url 'login' %}" class="px-5">
+                            <h5 class="text-primary"><i class="fa fa-hashtag me-2"></i>Login</h5>
+                        </a>
+                        <a href="{% url 'register' %}" class="">
+                            <h5 class="text-primary"><i class="fa fa-hashtag me-2"></i>Register</h5>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mt-5 d-flex align-items-center justify-content-center img-container ">
+                <img src="{% static 'image/p2.jpg' %}" class="img-fluid object-cover float-right img-clip" alt=""
+                    width="80%">
+            </div>
+        </div>
+    </div>
+
+
+    <div class="container">
+        <footer class="my-4 py-3 mb-0">
+            <ul class="nav justify-content-center border-bottom pb-3 mb-3">
+                <li class="nav-item"><a href="{% url 'index' %}" class="nav-link px-2 text-body-secondary"
+                        target="_blank">Home</a></li>
+                <li class="nav-item"><a href="https://mohanraj-s-portfolio.netlify.app/"
+                        class="nav-link px-2 text-body-secondary" target="_blank">Portfolio</a></li>
+                <li class="nav-item"><a href="mailto:mohanmohanraj136@gmail.com"
+                        class="nav-link px-2 text-body-secondary" target="_blank">Email</a></li>
+                <li class="nav-item"><a href="https://www.linkedin.com/in/mohanraj-sivakumar-631112201/"
+                        class="nav-link px-2 text-body-secondary" target="_blank">LinkedIn</a></li>
+                <li class="nav-item"><a href="https://github.com/Mohanraj36" class="nav-link px-2 text-body-secondary"
+                        target="_blank">GitHub</a></li>
+                <li class="nav-item"><a href="https://www.instagram.com/pirate_yes_be_warned/"
+                        class="nav-link px-2 text-body-secondary" target="_blank">Instagram</a></li>
+            </ul>
+            <p class="text-center text-body-secondary">&copy; 2024 MohanRaj, Inc</p>
+        </footer>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</body>
+</html>
+{% endblock %}

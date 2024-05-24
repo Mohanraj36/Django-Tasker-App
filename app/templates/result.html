@@ -1,0 +1,94 @@
+<div id="output" class="d-flex justify-content-start align-items-center" style="width: 100%;">
+    {% if Task %}
+    {% if results|length %}
+    <div class="col-12">
+        <div class="bg-dark rounded h-100 p-2">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">Task ID</th>
+                        <th scope="col">Task Title</th>
+                        <th scope="col">Project</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">View</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in results %}
+                    <tr class="">
+
+                        <td scope="row">{{i.task_id}}</td>
+                        <td class="text-truncate">{{i.task_name}}</td>
+                        <td>{{i.project}}</td>
+                        <td>{{i.task_status}}</td>
+                        <td> <a class="btn btn-primary btn-sm" aria-current="true" data-bs-toggle="modal"
+                                data-bs-target="#staticBackdrop-task-{{i.task_id}}">More</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="bg-dark rounded h-100 p-2">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">No Data Found</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+    {% endif%}
+    {% endif %}
+    <!--  -->
+    <!--  -->
+    <!--  -->
+    <!--  -->
+    {% if Ticket %}
+    {% if results|length %}
+    <div class="col-12">
+        <div class="bg-dark rounded h-100 p-2">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">Ticket ID</th>
+                        <th scope="col">Ticket Title</th>
+                        <th scope="col">Project</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">View</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in results %}
+                    <tr class="">
+
+                        <td scope="row">{{i.ticket_id}}</td>
+                        <td class="text-truncate">{{i.ticket_name}}</td>
+                        <td>{{i.project}}</td>
+                        <td>{{i.ticket_status}}</td>
+                        <td> <a class="btn btn-primary btn-sm" aria-current="true" data-bs-toggle="modal"
+                                data-bs-target="#staticBackdrop-ticket-{{i.ticket_id}}">More</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="bg-dark rounded h-100 p-2">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">No Data Found</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+    {% endif%}
+    {% endif%}
+</div>

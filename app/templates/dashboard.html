@@ -1,0 +1,589 @@
+{% load static %}
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Django Tasker </title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/css/bootstrap.min.css">
+    <script src="https://kit.fontawesome.com/ae360af17e.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"
+        integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2"
+        crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div class="wrapper">
+        <aside id="sidebar" class="js-sidebar">
+            <!-- Content For Sidebar -->
+            <div class="h-100" id="msg-area">
+                <!-- <div class="sidebar-logo">
+                    <a href="#">Ticket Tasker</a>
+                </div> -->
+
+
+                <ul class="sidebar-nav align-items-center sticky-top" style="background: var(--bs-body-bg);">
+                    <div class="sidebar-header">
+                        Ticket's
+                        {% if alert_badge %}
+                        <span class="badge badge-primary" data-toggle="tooltip" data-placement="top"
+                            title="Client Ticket Pending!">
+                            {{alert_badge}}
+                        </span>
+                        {% endif %}
+                    </div>
+
+                </ul>
+                {% for i in ticks %}
+                <div class="list-group list-group-flush border-bottom scrollarea" data-toggle="tooltip"
+                    data-placement="right" title="{{ i.ticket_created_at|timesince:current_t }}">
+                    <a class="list-group-item list-group-item-action active py-3
+                    {% if i.ticket_status == 'Open' %} bg-gradient bg-danger 
+                    {% elif i.ticket_status == 'In Progress' %} bg-gradient bg-warning
+                    {% elif i.ticket_status == 'Completed' %} bg-gradient bg-success
+                    {% endif %}" aria-current="true" data-bs-toggle="modal"
+                        data-bs-target="#staticBackdrop-ticket-{{i.ticket_id}}">
+                        {% if i.ticket_raised_by_client%}<i class="fa-solid fa-thumbtack"
+                            style="font-size: smaller;position: relative;float: right; top: 0px;"></i>{% endif %}
+                        <div class="d-flex w-100 align-items-center  justify-content-between"
+                            style="font-size: smaller;">
+                            <strong class="mb-1">ID: {{ i.ticket_id }} | Project: {{i.project}} | Priority:
+                                {{i.ticket_priority }}</strong>
+                            <small class="fw-lighter">{{ i.ticket_created_at | date:'d-M-y' }} </small>
+                        </div>
+                        <div class="col-10 mb-1 small fw-lighter">
+                            {{ i.ticket_name | truncatewords:5 }}
+                        </div>
+                    </a>
+                </div>
+                <!-- Button trigger modal -->
+
+                <!-- Modal -->
+                <div class="modal fade" id="staticBackdrop-ticket-{{i.ticket_id}}" data-bs-backdrop="static"
+                    data-bs-keyboard="true" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="staticBackdropLabel"><strong>Ticket Name</strong>
+                                    {{i.ticket_name}}
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form class="row g-3" method="post" action="{% url 'ticket-form' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="ticket_id" value="{{i.ticket_id}}">
+                                    <div class="col-md-6">
+                                        <label for="ticketid" class="form-label">Ticket ID</label>
+                                        <p>{{ i.ticket_id }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="project" class="form-label">Project Name</label>
+                                        <p>{{i.project}}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="assigned_by" class="form-label">Raised By</label>
+                                        <p>{{i.ticket_assigned_by}}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="assigned_to" class="form-label ">Assigned To</label>
+                                        <ol class="list-group list-group-horizontal">
+                                            {% for j in i.ticket_assigned_to.all %}
+                                            <li class="list-group-item">{{j | title}}</li>
+                                            {% endfor %}
+                                        </ol>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label for="description" class="form-label">Description</label>
+                                        <p class=""> {{i.ticket_description}}</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="ticket_status" class="form-label">Status</label>
+                                        <select id="ticket_status" name="ticket_status" class="form-select">
+                                            {% if i.ticket_status == 'Open' %}
+                                            <option value="Open" selected>Open</option>
+                                            <option value="In Progress">In Progress</option>
+                                            <option value="Completed">Completed</option>
+                                            {% elif i.ticket_status == 'In Progress' %}
+                                            <option value="Open">Open</option>
+                                            <option value="In Progress" selected>In Progress</option>
+                                            <option value="Completed">Completed</option>
+                                            {% elif i.ticket_status == 'Completed' %}
+                                            <option value="Open">Open</option>
+                                            <option value="In Progress">In Progress</option>
+                                            <option value="Completed" selected>Completed</option>
+                                            {% endif %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="created_at" class="form-label">Created</label>
+                                        <p id="created_at">{{i.ticket_created_at }}</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="due_date" class="form-label">Due Date</label>
+                                        <p id="due_date">{{i.ticket_due_date }}</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="priority" class="form-label">Priority</label>
+                                        <p id="priority">{{i.ticket_priority }}</p>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            {% if i.ticket_raised_by_client %}
+                                            <input class="form-check-input" type="checkbox" id="gridCheck" checked
+                                                disabled>
+                                            {% else %}
+                                            <input class="form-check-input" type="checkbox" id="gridCheck" disabled>
+                                            {% endif %}
+                                            <label>
+                                                Raised By Client
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="submit" data-dismiss="modal"
+                                            class="btn btn-primary">Submit</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <!-- <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary">Submit</button>
+                            </div> -->
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </aside>
+        <div class="main">
+                {% include 'messages.html' %}
+            <nav class="navbar navbar-expand px-3 border-bottom">
+                <button class="btn" id="sidebar-toggle" type="button">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'index' %}">Django Tasker</a>
+                </li>
+                <!--  -->
+                <div action="" method="get" class="d-flex justify-content-between align-items-center">
+                    <input class="form-control s" name="q" id="sbar" placeholder="Type to search..."
+                        hx-get="{% url 'search' %}" hx-include="[name='t']" hx-trigger="keyup changed delay:200ms"
+                        hx-target="#output"
+                        hx-vals='{"checkboxValue": document.querySelector("#flexSwitchCheckChecked").checked ? "Ticket" : "Task"}'>
+                    <div class="form-check form-switch ms-2 d-flex align-items-center" data-toggle="tooltip"
+                        data-placement="bottom" title="Toggle Search Task | Ticket">
+                        <input class="form-check-input p-2" type="checkbox" name="t" role="switch"
+                            id="flexSwitchCheckChecked" style="padding: 10px; width: 40px;">
+                        <label class="form-check-label mx-2" for="flexSwitchCheckChecked">Ticket</label>
+                    </div>
+                </div>
+                <!--  -->
+                <div class="navbar-collapse navbar">
+                    <ul class="navbar-nav">
+                        <li class="nav-item pt-2 px-2">
+                            <span class="fw-lighter">Welcome</span>
+                            <span>
+                                {% if request.user.is_superuser %}
+                                <a href="{% url 'admin:index' %}"  data-toggle="tooltip"
+                                data-placement="bottom" title="Click For Admin Console">{{request.user}}</a>
+                                {% else %}
+                                {{request.user }}
+                                {% endif %}
+                            </span>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a href="#" data-bs-toggle="dropdown" class="nav-icon pe-md-0">
+                                <img src="{% static 'image/p5.png' %}" class="avatar img-fluid rounded" alt="">
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-end">
+                                <a href="{% url 'logout' %}" class="dropdown-item">Logout</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            <main class="content-2 w-100" style="width: 100%; display: none;">
+
+                {% include 'result.html' %}
+
+            </main>
+            <main class="content px-2 py-3">
+                <!-- <div class="container-fluid"> -->
+                <div class="row">
+                    <div class="col-12 col-md-6 d-flex">
+                        <div class="card flex-fill border-0">
+                            <canvas id="myPieChart"></canvas>
+                            <div class="card-body d-flex flex-fill">
+                                <div class="row g-0 w-100">
+                                    <!-- <div class="col-6"> -->
+                                    <div class="">
+                                        <!-- <h4>Ticket</h4> -->
+                                        <!-- <p class="mb-0">Admin Dashboard, CodzSword</p> -->
+                                    </div>
+                                    <!-- </div> -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 d-flex">
+                        <div class="card flex-fill border-0">
+                            <canvas id="myPieChart2"></canvas>
+                            <div class="card-body">
+                                <div class="d-flex align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="">
+                                            <!-- <h4>Task</h4> -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 d-flex flex-fill justify-content-center align-items-center"
+                    style="margin-bottom: 0px;">
+                    <canvas id="myPieChart3" class="card border-0"
+                        style="position: relative; height:47vh; width:80vw;max-width: 80vw;max-height: 47vh;"></canvas>
+                </div>
+
+            </main>
+        </div>
+        <aside id="sidebar-2" class="js-sidebar-2">
+            <div class="h-100" id="msg-area-2">
+                <ul class="sidebar-nav-2 sticky-top" style="background: var(--bs-body-bg);">
+                    <li class="sidebar-header">
+                        Task's
+                    </li>
+                </ul>
+                {% for i in tasks %}
+                <div class="list-group list-group-flush border-bottom scrollarea" data-toggle="tooltip"
+                    data-placement="right" title="{{i.task_created_at | timesince:current_t}} ago">
+                    <a class="list-group-item list-group-item-action active py-3  
+                    {% if i.task_status == 'Open' %} bg-gradient bg-danger 
+                    {% elif i.task_status == 'In Progress' %} bg-gradient bg-warning
+                    {% elif i.task_status == 'Completed' %} bg-gradient bg-success
+                    {% endif %}" aria-current="true" data-bs-toggle="modal"
+                        data-bs-target="#staticBackdrop-task-{{i.task_id}}">
+
+                        <div class="d-flex w-100 align-items-center  justify-content-between"
+                            style="font-size: smaller;">
+                            <strong class="mb-1">ID: {{ i.task_id }} | Project: {{i.project}} | Priority:
+                                {{i.task_priority }}</strong>
+                            <small class="fw-lighter">{{ i.task_created_at | date:'d-M-y' }} </small>
+                        </div>
+                        <div class="col-10 mb-1 small fw-lighter">
+                            {{ i.task_name | truncatewords:5 }}
+                        </div>
+                    </a>
+                </div>
+                <!-- Button trigger modal -->
+
+                <!-- Modal -->
+                <div class="modal fade" id="staticBackdrop-task-{{i.task_id}}" data-bs-backdrop="static"
+                    data-bs-keyboard="true" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="staticBackdropLabel"><strong>Task</strong> ID:
+                                    {{i.task_id }} | {{i.task_created_at | date:'d-M-y'}} | {{i.task_priority}}
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form class="row g-3" method="post" action="{% url 'task-form' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="task_id" value="{{i.task_id}}">
+                                    <div class="col-md-6">
+                                        <label for="task_id" class="form-label">task ID</label>
+                                        <p>{{ i.task_id }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="project" class="form-label">Project Name</label>
+                                        <p>{{i.project}}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="assigned_by" class="form-label">Raised By</label>
+                                        <p>{{i.task_assigned_by}}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="assigned_to" class="form-label ">Assigned To</label>
+                                        <ol class="list-group list-group-horizontal">
+                                            {% for j in i.task_assigned_to.all %}
+                                            <li class="list-group-item">{{j | title}}</li>
+                                            {% endfor %}
+                                        </ol>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label for="description" class="form-label">Description</label>
+                                        <p class=""> {{i.task_description}}</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="task_status" class="form-label">Status</label>
+                                        <select id="task_status" name="task_status" class="form-select">
+                                            {% if i.task_status == 'Open' %}
+                                            <option value="Open" selected>Open</option>
+                                            <option value="In Progress">In Progress</option>
+                                            <option value="Completed">Completed</option>
+                                            {% elif i.task_status == 'In Progress' %}
+                                            <option value="Open">Open</option>
+                                            <option value="In Progress" selected>In Progress</option>
+                                            <option value="Completed">Completed</option>
+                                            {% elif i.task_status == 'Completed' %}
+                                            <option value="Open">Open</option>
+                                            <option value="In Progress">In Progress</option>
+                                            <option value="Completed" selected>Completed</option>
+                                            {% endif %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="created_at" class="form-label">Created</label>
+                                        <p id="created_at">{{i.task_created_at }}</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="due_date" class="form-label">Due Date</label>
+                                        <p id="due_date">{{i.task_due_date }}</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="priority" class="form-label">Priority</label>
+                                        <p id="priority">{{i.task_priority }}</p>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            {% if i.task_raised_by_client %}
+                                            <input class="form-check-input" type="checkbox" id="gridCheck" checked
+                                                disabled>
+                                            {% else %}
+                                            <input class="form-check-input" type="checkbox" id="gridCheck" disabled>
+                                            {% endif %}
+                                            <label>
+                                                Raised By Client
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="submit" data-dismiss="modal" class="btn btn-primary task-submit"
+                                            id="task-submit">Submit</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <!-- <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary">Submit</button>
+                            </div> -->
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        // Get the data from Django context
+        var chart_data = JSON.parse('{{ chart_data | safe }}');
+        // Get the canvas element
+        var ctx = document.getElementById('myPieChart').getContext('2d');
+        var ctx2 = document.getElementById('myPieChart2').getContext('2d');
+        var ctx3 = document.getElementById('myPieChart3').getContext('2d');
+
+        // Create the pie chart
+        var myPieChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chart_data.ticket_labels,
+                datasets: [{
+                    label: 'Ticket',
+                    // backgroundColor: ["#59a0ec", "#ff6447", "#ebff5c", "#5eff92"],
+                    backgroundColor: ["#0d6efd", "#dc3545", "#ffc107", "#198754"],
+                    data: chart_data.ticket_total,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        grid: {
+                            color: '#212f3d',
+                        },
+                        ticks: {
+                            precision: 0
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: '#212f3d',
+                        }
+                    }
+                }
+            }
+        });
+
+        var myPieChart2 = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                // labels: ['red','blue','green'],
+                labels: chart_data.task_labels,
+                datasets: [{
+                    label: 'Task',
+                    // data: [10,20,30],
+                    data: chart_data.task_total,
+                    fill: true,
+                    // data: dt,
+                    backgroundColor: ["#0d6efd", "#dc3545", "#ffc107", "#198754"],
+                    // backgroundColor: ["#59a0ec", "#ff6447", "#ebff5c", "#5eff92"],
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        grid: {
+                            color: '#212f3d',
+                            // drawOnChartArea: false,
+                        },
+                        ticks: {
+                            precision: 0
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: '#212f3d',
+                            // drawOnChartArea: false,
+                        }
+                    }
+                }
+            }
+        });
+
+        var myPieChart3 = new Chart(ctx3, {
+            type: 'line',
+            data: {
+                labels: chart_data.total_data_labels,
+                datasets: [{
+                    label: "Ticket",
+                    data: chart_data.total_data,
+                    backgroundColor: "rgba(0, 156, 255, .5)",
+                    fill: true,
+                },
+                {
+                    label: "Task",
+                    data: chart_data.task_total_data,
+                    backgroundColor: "#5eff92",
+                    fill: true
+                }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                stacked: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: "Completed Action's ",
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: '#212f3d'
+                        }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        grid: {
+                            color: '#212f3d'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: false,
+                        position: 'right',
+                    },
+                }
+            },
+        });
+
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+
+
+        $(document).ready(function () {
+            $("#sbar").on("input focus", function () {
+                $(".content").fadeOut();
+                $(".content-2").show();
+            });
+        });
+
+        $(document).ready(function () {
+            $(".content-2").on("click", function () {
+                // Table click event handler
+                // You can add your specific logic here if needed
+                // For now, just prevent hiding .content-2
+                return false; // Prevent default behavior
+            });
+        });
+
+        $(document).ready(function () {
+            $(document).on("click touchstart", function (e) {
+                // Handle clicks or touch events outside .content-2, #sbar, and modal content
+                if (!$(e.target).closest(".content-2, #sbar, .modal, .form-switch").length) {
+                    $(".content").fadeIn(); // Fade in content if clicked outside
+                    $(".content-2").hide(); // Hide content-2'
+                    $('#sbar').val('');
+                }
+            });
+        });
+
+        $(document).ready(function () {
+            $(".modal").on("click touchstart", function (e) {
+                e.stopPropagation(); // Prevent event bubbling
+            });
+        });
+
+        $(document).ready(function () {
+            const switchCheckbox = document.getElementById('flexSwitchCheckChecked');
+
+            // Add event listener for checkbox click
+            switchCheckbox.addEventListener('click', function () {
+                // Get the label element
+                const labelElement = document.querySelector('.form-check-label[for="flexSwitchCheckChecked"]');
+
+                // Toggle the label text and input value between "Task" and "Ticket"
+                if (labelElement.textContent === "Task") {
+                    labelElement.textContent = "Ticket";
+                    switchCheckbox.value = "Ticket";
+                } else {
+                    labelElement.textContent = "Task";
+                    switchCheckbox.value = "Task";
+                }
+            });
+        });
+
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+
+</html>
+{% endblock %}
